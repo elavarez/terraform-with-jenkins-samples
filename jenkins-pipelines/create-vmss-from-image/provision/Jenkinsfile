@@ -10,10 +10,10 @@
 
 podTemplate(label: 'azurevm', containers: [
     containerTemplate(name: 'terraform-az', image: '<containerRegistry>/terraform-az', ttyEnabled: true, command: 'cat',envVars: [
-       secretEnvVar(key: 'ARM_CLIENT_ID', secretName: '<your-secret-name>', secretKey: 'clientid'),
-       secretEnvVar(key: 'ARM_CLIENT_SECRET', secretName: '<your-secret-name>', secretKey: 'clientsecret'),
-       secretEnvVar(key: 'ARM_TENANT_ID', secretName: '<your-secret-name>', secretKey: 'tenantid'),
-       secretEnvVar(key: 'ARM_SUBSCRIPTION_ID', secretName: '<your-secret-name>', secretKey: 'subscriptionid')
+       secretEnvVar(key: 'ARM_CLIENT_ID', secretName: 'ARM_CLIENT_ID', secretKey: 'clientid'),
+       secretEnvVar(key: 'ARM_CLIENT_SECRET', secretName: 'ARM_CLIENT_SECRET', secretKey: 'clientsecret'),
+       secretEnvVar(key: 'ARM_TENANT_ID', secretName: 'ARM_TENANT_ID', secretKey: 'tenantid'),
+       secretEnvVar(key: 'ARM_SUBSCRIPTION_ID', secretName: 'ARM_SUBSCRIPTION_ID', secretKey: 'subscriptionid')
         ]),
   ]) 
 {
@@ -25,7 +25,7 @@ podTemplate(label: 'azurevm', containers: [
          stage('Init parameters'){
             container('terraform-az') {
                 // Get SSH public for the VMSS from Jenkins
-                withCredentials([sshUserPrivateKey(credentialsId: '<your-public-key-id>', keyFileVariable: 'PUBLICKEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'public-key-id', keyFileVariable: 'PUBLICKEY')]) {
                         sh  """
                         mkdir /home/jenkins/.ssh
                         cat $PUBLICKEY >/home/jenkins/.ssh/id_rsa.pub
