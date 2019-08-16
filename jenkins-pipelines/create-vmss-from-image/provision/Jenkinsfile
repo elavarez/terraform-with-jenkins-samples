@@ -24,7 +24,7 @@ pipeline {
         ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
     }
 
-    node('azurevm') {
+    node {
         def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
         currentBuild.result = "SUCCESS"
 
