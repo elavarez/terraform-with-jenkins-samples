@@ -14,10 +14,8 @@ pipeline {
 	
         "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform-0.12.6"
     }
-    node{
-        def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
-        currentBuild.result = "SUCCESS"
-		}
+
+
 	
  environment {
         TF_HOME = tool('terraform-0.12.6')
@@ -27,6 +25,8 @@ pipeline {
         ARM_CLIENT_SECRET = credentials('ARM_CLIENT_SECRET')
         ARM_TENANT_ID = credentials('ARM_TENANT_ID')
         ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
+        def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
+        currentBuild.result = "SUCCESS"
     }
 
 
@@ -98,4 +98,4 @@ pipeline {
         throw err
     }
     }
-}
+
