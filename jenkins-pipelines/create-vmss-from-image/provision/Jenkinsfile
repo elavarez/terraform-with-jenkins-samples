@@ -8,14 +8,21 @@
 //vmss_name="testvmss"
 //location="northeurope"
 
-podTemplate(label: 'azurevm', containers: [
-    containerTemplate(name: 'jenkins_20190725', image: 'jenkinsci/blueocean:1.17.0-bcc31d32159f', ttyEnabled: true, command: 'cat',envVars: [
-       secretEnvVar(key: 'ARM_CLIENT_ID', secretName: 'ARM_CLIENT_ID', secretKey: 'clientid'),
-       secretEnvVar(key: 'ARM_CLIENT_SECRET', secretName: 'ARM_CLIENT_SECRET', secretKey: 'clientsecret'),
-       secretEnvVar(key: 'ARM_TENANT_ID', secretName: 'ARM_TENANT_ID', secretKey: 'tenantid'),
-       secretEnvVar(key: 'ARM_SUBSCRIPTION_ID', secretName: 'ARM_SUBSCRIPTION_ID', secretKey: 'subscriptionid')
-        ]),
-  ]) 
+pipeline {
+    agent any
+    tools {
+        "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform-0.12.6"
+    }
+
+ environment {
+        TF_HOME = tool('terraform-0.12.6')
+        TF_IN_AUTOMATION = "true"
+        PATH = "$TF_HOME:$PATH"
+        ARM_CLIENT_ID = credentials('ARM_CLIENT_ID')
+        ARM_CLIENT_SECRET = credentials('ARM_CLIENT_SECRET')
+        ARM_TENANT_ID = credentials('ARM_TENANT_ID')
+        ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
+    }
 {
     node('azurevm') {
         def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
@@ -23,33 +30,33 @@ podTemplate(label: 'azurevm', containers: [
 
     try {
          stage('Init parameters'){
-            container('jenkins_20190725') {
+  
                 // Get SSH public for the VMSS from Jenkins
                 withCredentials([sshUserPrivateKey(credentialsId: 'public-key-id', keyFileVariable: 'PUBLICKEY')]) {
                         sh  """
                         mkdir /home/jenkins/.ssh
                         cat $PUBLICKEY >/home/jenkins/.ssh/id_rsa.pub
                         """
-                    }     
+  
             }
          }
          stage('Checkout'){
-            container('jenkins_20190725') {
+ 
                 // Get the terraform plan
                 git url: gitRepo, branch: 'master'
-            }
+ 
         }
         stage('Terraform init'){
-            container('jenkins_20190725') {
+
                 // Initialize the plan 
                 sh  """
                     cd terraform-plans/create-vmss-from-image
                     terraform init -input=false
                    """
-            }
+
         }
         stage('Terraform plan'){
-            container('jenkins_20190725') {  
+
                 
                 // Get the VM image ID for the VMSS  
                 sh  '''
@@ -62,26 +69,26 @@ podTemplate(label: 'azurevm', containers: [
 
                 sh (script:"cd terraform-plans/create-vmss-from-image && terraform plan -out=tfplan -input=false -var 'terraform_resource_group='$vmss_rg -var 'terraform_vmss_name='$vmss_name -var 'terraform_azure_region='$location -var 'terraform_image_id='$image_id")
                      
-            }
+
         }
        
         stage('Terraform apply'){
-            container('jenkins_20190725') {
+
                 // Apply the plan
                 sh  """  
                     cd terraform-plans/create-vmss-from-image
                     terraform apply -input=false -auto-approve "tfplan"
                    """
-            }
+
         }
         stage('Upload tfstate'){
-            container('jenkins_20190725') {
+
                 // Upload the state of the plan to Azure Blob Storage
                 sh (script: "cd terraform-plans/create-vmss-from-image && tar -czvf ~/workspace/${env.JOB_NAME}/$deployment'.tar.gz' .")
                 sh "pwd"
                 azureUpload blobProperties: [cacheControl: '', contentEncoding: '', contentLanguage: '', contentType: '', detectContentType: true], containerName: '<container-name>', fileShareName: '', filesPath: '${deployment}.tar.gz', storageCredentialId: '<jenkins-storage-id>', storageType: 'blobstorage'
                 
-            }
+
         }
     }
     catch (err) {
