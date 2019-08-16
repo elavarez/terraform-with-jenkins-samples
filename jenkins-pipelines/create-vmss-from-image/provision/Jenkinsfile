@@ -11,9 +11,14 @@
 pipeline {
     agent any
     tools {
+	
         "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform-0.12.6"
     }
-
+    node{
+        def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
+        currentBuild.result = "SUCCESS"
+		}
+	
  environment {
         TF_HOME = tool('terraform-0.12.6')
         TF_IN_AUTOMATION = "true"
@@ -24,9 +29,6 @@ pipeline {
         ARM_SUBSCRIPTION_ID = credentials('ARM_SUBSCRIPTION_ID')
     }
 
-    node {
-        def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
-        currentBuild.result = "SUCCESS"
 
     try {
          stage('Init parameters'){
