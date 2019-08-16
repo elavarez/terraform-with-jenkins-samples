@@ -1,12 +1,12 @@
 // ******
 // Exptected parameters for HTTP request to pipeline
 // ******
-deployment="client01"
-vm_images_rg="vm-images-RG"
-vmss_rg="vmss_RG"
-image_name="vmimage01"
-vmss_name="testvmss"
-location="northeurope"
+//deployment="client01"
+//vm_images_rg="vm-images-RG"
+//vmss_rg="vmss_RG"
+//image_name="vmimage01"
+//vmss_name="testvmss"
+//location="northeurope"
 
 podTemplate(label: 'azurevm', containers: [
     containerTemplate(name: 'jenkins_20190725', image: 'jenkinsci/blueocean:1.17.0-bcc31d32159f', ttyEnabled: true, command: 'cat',envVars: [
