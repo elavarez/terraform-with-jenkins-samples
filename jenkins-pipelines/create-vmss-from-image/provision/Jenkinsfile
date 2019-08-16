@@ -10,13 +10,6 @@
 
 pipeline {
     agent any
-    tools {
-	
-        "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform-0.12.6"
-    }
-
-
-	
  environment {
         TF_HOME = tool('terraform-0.12.6')
         TF_IN_AUTOMATION = "true"
@@ -28,25 +21,31 @@ pipeline {
         def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
         currentBuild.result = "SUCCESS"
     }
-
+  tools {
+	
+        "org.jenkinsci.plugins.terraform.TerraformInstallation" "terraform-0.12.6"
+    }
+  node {
+        def gitRepo = 'https://github.com/elavarez/terraform-with-jenkins-samples'
+        currentBuild.result = "SUCCESS"
 
     try {
          stage('Init parameters'){
-  
+
                 // Get SSH public for the VMSS from Jenkins
-                withCredentials([sshUserPrivateKey(credentialsId: 'public-key-id', keyFileVariable: 'PUBLICKEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: '<your-public-key-id>', keyFileVariable: 'PUBLICKEY')]) {
                         sh  """
                         mkdir /home/jenkins/.ssh
                         cat $PUBLICKEY >/home/jenkins/.ssh/id_rsa.pub
                         """
-  
+
             }
          }
          stage('Checkout'){
- 
+
                 // Get the terraform plan
                 git url: gitRepo, branch: 'master'
- 
+
         }
         stage('Terraform init'){
 
@@ -90,12 +89,15 @@ pipeline {
                 sh "pwd"
                 azureUpload blobProperties: [cacheControl: '', contentEncoding: '', contentLanguage: '', contentType: '', detectContentType: true], containerName: '<container-name>', fileShareName: '', filesPath: '${deployment}.tar.gz', storageCredentialId: '<jenkins-storage-id>', storageType: 'blobstorage'
                 
-
+           }
         }
-    }
+    
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
     }
+}
+
+
 
